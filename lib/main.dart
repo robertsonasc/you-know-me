@@ -1,4 +1,6 @@
+import 'package:exemplo/auxWidget.dart';
 import 'package:exemplo/button.dart';
+import 'package:exemplo/inputQuestionsComponent.dart';
 import 'package:exemplo/question.dart';
 import 'package:exemplo/quiz.dart';
 import 'package:exemplo/result.dart';
@@ -12,35 +14,16 @@ main() {
   ));
 }
 
-/*class YouKnowMe extends StatelessWidget {
-  int _cont = 0;
-
-  void _onRespond() {
-    _cont++;
-    print(_cont);
-  }
+class YouKnowMe extends StatefulWidget {
+  const YouKnowMe({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final _questions = ['what is m favorite color?'];
-
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('You know me?')),
-        body: Column(
-          children: <Widget>[
-            Text(_questions[0]),
-            RaisedButton(child: Text('Black'), onPressed: _onRespond),
-            RaisedButton(child: Text('Blue'), onPressed: _onRespond),
-            RaisedButton(child: Text('Red'), onPressed: _onRespond),
-          ],
-        ),
-      ),
-    );
+  _YouKnowMeState createState() {
+    return _YouKnowMeState();
   }
-}*/
+}
 
-class YouKnowMeState extends State<YouKnowMe> {
+class _YouKnowMeState extends State<YouKnowMe> {
   int _cont = 0;
   int _score = 0;
   String appBarTitle = 'you know me?';
@@ -61,41 +44,58 @@ class YouKnowMeState extends State<YouKnowMe> {
     });
   }
 
-  final List<Map<String, Object>> _questions = [
-    {
-      'text': 'what is my favorite color?',
-      'answers': [
-        {'text': 'black', 'score': 1},
-        {'text': 'blue', 'score': 0},
-        {'text': 'red', 'score': 0},
-      ]
-    },
-    {
-      'text': 'what is my favorite musical artist?',
-      'answers': [
-        {'text': 'Ozzy', 'score': 0},
-        {'text': 'Poze do Rodo', 'score': 1},
-        {'text': 'Matuê', 'score': 0},
-      ]
-    },
-  ];
+  List<Map<String, Object>> questions = [];
 
   void questionsAnswer(BuildContext context) {}
 
   bool getAnswerSelected() {
-    return _cont < _questions.length;
+    return _cont < questions.length;
+  }
+
+  //retorn true if user already include questions
+  bool setQuestions() {
+    return !(questions.length == 0);
+  }
+
+  Widget playGame(List<Widget> buttonsAnswers) {
+    return getAnswerSelected()
+        ? Quiz(
+            Question(questions[_cont]['question'].toString()),
+            buttonsAnswers,
+          )
+        : Result(
+            'ok, you finished the quiz, and got ' +
+                _score.toString() +
+                ' questions right.',
+            restartQuiz,
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => QuestionsAnswer(questions)),
+            ),
+          );
+  }
+
+  Future<void> _navigateCreateQuiz(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => InputQuestionsComponent(
+                data: questions,
+              )),
+    );
+
+    if (!mounted) return;
+
+    questions = result;
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // List<Widget> answersList = [];
-
-    // for (String ans in _questions[_cont].cast()['answers']) {
-    //   answersList.add(MyButton(ans, _onRespond));
-    // }
     List<Map<String, Object>> answersList;
     getAnswerSelected()
-        ? answersList = _questions[_cont].cast()['answers']
+        ? answersList = questions[_cont].cast()['itens']
         : answersList = [];
 
     List<Widget> buttonsAnswers = answersList
@@ -103,11 +103,14 @@ class YouKnowMeState extends State<YouKnowMe> {
             () => {_onRespond(int.parse(resp['score'].toString()))}))
         .toList();
 
+    // do {
+    //   _navigateCreateQuiz(context);
+    // } while (!setQuestions());
     return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle)),
-      body: getAnswerSelected()
+        appBar: AppBar(title: Text(appBarTitle)),
+        /*body: getAnswerSelected()
           ? Quiz(
-              Question(_questions[_cont]['text'].toString()),
+              Question(questions[_cont]['text'].toString()),
               buttonsAnswers,
             )
           : Result(
@@ -118,17 +121,11 @@ class YouKnowMeState extends State<YouKnowMe> {
               () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => QuestionsAnswer(_questions)),
-                  )),
-    );
-  }
-}
+                        builder: (context) => QuestionsAnswer(questions)),
+                  )),*/
 
-class YouKnowMe extends StatefulWidget {
-  const YouKnowMe({Key? key}) : super(key: key);
-
-  @override
-  YouKnowMeState createState() {
-    return YouKnowMeState();
+        body: setQuestions()
+            ? playGame(buttonsAnswers)
+            : AuxWidget(() => _navigateCreateQuiz(context)));
   }
 }

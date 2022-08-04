@@ -6,7 +6,7 @@ import 'package:exemplo/buttonAnswer.dart';
 
 class QuestionsAnswerState extends State<QuestionsAnswer> {
   int _cont = 0;
-  List<Map<String, Object>> _questions = [];
+  List<Map<String, Object>> _questions;
 
   QuestionsAnswerState(this._questions);
 
@@ -25,7 +25,7 @@ class QuestionsAnswerState extends State<QuestionsAnswer> {
   Widget build(BuildContext context) {
     List<Map<String, Object>> answersList;
     getAnswerSelected()
-        ? answersList = _questions[_cont].cast()['answers']
+        ? answersList = _questions[_cont].cast()['itens']
         : answersList = [];
 
     List<Widget> buttonsAnswers = answersList
@@ -38,7 +38,7 @@ class QuestionsAnswerState extends State<QuestionsAnswer> {
         appBar: AppBar(title: Text('you know me?')),
         body: getAnswerSelected()
             ? Quiz(
-                Question(_questions[_cont]['text'].toString()),
+                Question(_questions[_cont]['question'].toString()),
                 buttonsAnswers,
               )
             : null,
